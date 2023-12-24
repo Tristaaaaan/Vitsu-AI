@@ -20,6 +20,7 @@ from user_database import Database
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.snackbar import Snackbar
 from kivy.core.window import Window
+import json
 
 db = Database()
 
@@ -69,6 +70,23 @@ class FirstWindow(Screen):
                 # If password is correct
                 if db.locateAcc(self.ids.username.text,
                                 self.ids.password.passw.text) is True:
+
+                    # Specify the JSON file path
+                    json_file_path = 'login_cred.json'
+
+                    # Load existing data from the JSON file
+                    with open(json_file_path, 'r') as file:
+                        data = json.load(file)
+
+                    user = data['user']
+
+                    user.update({
+                        'username': self.ids.username.text})
+
+                    # Save the updated data back to the JSON file
+                    with open(json_file_path, 'w') as file:
+                        json.dump(data, file, indent=2)
+
                     self.clear()
                     self.manager.current = "third"
                     self.manager.transition.direction = "left"
@@ -167,6 +185,40 @@ class SecondWindow(Screen):
 class ThirdWindow(Screen):
 
     Builder.load_file('thirdwindow.kv')
+    translated_text = StringProperty()
+
+    def back_to_main(self):
+        self.manager.current = "first"
+        self.manager.transition.direction = "right"
+
+    def view_profile(self):
+
+        # Specify the JSON file path
+        json_file_path = 'login_cred.json'
+
+        # Load existing data from the JSON file
+        with open(json_file_path, 'r') as file:
+            data = json.load(file)
+
+        # Access the "username" value directly
+        username = data['user'].get('username')
+
+        self.profile(username)
+
+    def profile(self, current_user):
+        self.profile_view = MDDialog(
+            title="Profile",
+            type="custom",
+            size_hint_x=0.9,
+            size_hint_y=None,
+            auto_dismiss=False,
+            content_cls=ProfileDialog(current_username=current_user),
+        )
+
+        self.profile_view.open()
+
+    def close_profile_dialog(self, *args):
+        self.profile_view.dismiss()
 
     def start_recording(self):
 
@@ -177,6 +229,10 @@ class ThirdWindow(Screen):
             self.unwrapped = ''
 
             self.ids.output.text += "\nThe recording has started, you may speak now."
+            self.ids.recording_background.md_bg_color = [
+                239/255, 153/255, 117/255, 1]
+
+            self.ids.recording_status.text_color = 'white'
 
             self.speech_events = SpeechEvents()
 
@@ -194,6 +250,10 @@ class ThirdWindow(Screen):
 
             self.ids.recording_status.text = 'Record'
 
+            self.ids.recording_background.md_bg_color = 'white'
+
+            self.ids.recording_status.text_color = 'black'
+
             self.speech_events.stop_listening()
 
             recognized_text = self.unwrapped
@@ -201,22 +261,49 @@ class ThirdWindow(Screen):
             translate_text = GoogleTranslator(
                 source='auto', target='en').translate(recognized_text)
 
-            self.config_length(translate_text)
+            self.ids.output.text += f"\n\nTranslated Text:\n\n{translate_text}"
 
-    def config_length(self, translated_output):
-        self.task_list_dialog = MDDialog(
-            title="Results",
-            type="custom",
-            size_hint_x=0.9,
-            size_hint_y=None,
-            auto_dismiss=False,
-            content_cls=DialogContent(translated_output=translated_output),
-        )
+            self.translated_text = translate_text
 
-        self.task_list_dialog.open()
+    def view_dashboard(self):
+
+        if self.translated_text == '':
+            self.error_dialog(
+                message="Sorry, we couldn't find any translated text.")
+        else:
+            self.dashboard_view = MDDialog(
+                title="Results",
+                type="custom",
+                size_hint_x=0.9,
+                size_hint_y=None,
+                auto_dismiss=False,
+                content_cls=DialogContent(
+                    translated_output=self.translated_text),
+            )
+
+            self.dashboard_view.open()
 
     def close_dialog(self, *args):
-        self.task_list_dialog.dismiss()
+        self.dashboard_view.dismiss()
+
+    def error_dialog(self, message):
+
+        close_button = MDFlatButton(
+            text='CLOSE',
+            text_color=[0, 0, 0, 1],
+            on_release=self.close_error_ask_dialog,
+        )
+        self.error_ask = MDDialog(
+            title='[color=#FF0000]Ooops![/color]',
+            text=message,
+            auto_dismiss=False,
+            buttons=[close_button],
+        )
+        self.error_ask.open()
+
+    # Close Dialog
+    def close_error_ask_dialog(self, obj):
+        self.error_ask.dismiss()
 
     @mainthread
     def recognizer_event_handler(self, key, value):
@@ -244,7 +331,7 @@ class DialogContent(MDBoxLayout):
 
     def cancel(self):
 
-        #self.saved_successfully()
+        # self.saved_successfully()
 
         MDApp.get_running_app().root.third.close_dialog()
 
@@ -272,13 +359,85 @@ class DialogContent(MDBoxLayout):
 
         self.cancel()
 
-        #MDApp.get_running_app().root.third.ids.output.text += f"\n\nFile '{document_file}' saved successfully!"
+        # MDApp.get_running_app().root.third.ids.output.text += f"\n\nFile '{document_file}' saved successfully!"
 
     def saved_successfully(self):
         snackbar = Snackbar(
             text="The text has been saved."
         )
         snackbar.open()
+
+
+class ProfileDialog(MDBoxLayout):
+
+    current_username = StringProperty()
+
+    """Customize dialog box for user to insert their expenses"""
+    # Initiliaze date to the current date
+
+    def cancel(self):
+
+        # self.saved_successfully()
+
+        MDApp.get_running_app().root.third.close_profile_dialog()
+
+        MDApp.get_running_app().root.third.ids.output.text = ''
+
+    def logout(self):
+
+        MDApp.get_running_app().root.third.back_to_main()
+
+        # Specify the JSON file path
+        json_file_path = 'login_cred.json'
+
+        # Load existing data from the JSON file
+        with open(json_file_path, 'r') as file:
+            data = json.load(file)
+
+        user = data['user']
+
+        user.update({
+            'username': ''})
+
+        # Save the updated data back to the JSON file
+        with open(json_file_path, 'w') as file:
+            json.dump(data, file, indent=2)
+
+        self.cancel()
+
+    def saved_successfully(self):
+        snackbar = Snackbar(
+            text="The text has been saved."
+        )
+        snackbar.open()
+
+
+class LoadingScreen(Screen):
+
+    Builder.load_file('loadingscreen.kv')
+
+    def on_enter(self, *args):
+
+        Clock.schedule_once(self.switch_screen, 5)
+
+    def switch_screen(self, dt):
+
+        # Specify the JSON file path
+        json_file_path = 'login_cred.json'
+
+        # Load existing data from the JSON file
+        with open(json_file_path, 'r') as file:
+            data = json.load(file)
+
+        user = data['user']
+
+        # Check if the username is an empty string
+        if user.get('username', '') == '':
+            # If the username is an empty string, update it
+
+            self.manager.current = 'first'
+        else:
+            self.manager.current = 'third'
 
 
 class WindowManager(ScreenManager):

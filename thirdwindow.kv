@@ -20,21 +20,19 @@
                 MDCard:
                     spacing: 10
                     radius: [40, 40, 40, 40]
-                    md_bg_color: 'white'
-                    #on_release:
-                        #root.start_recording()
+                    md_bg_color: [239/255, 153/255, 117/255, 1]
                     MDLabel:
-                        text: 'Home'
+                        text: 'Vitsu AI'
                         halign: 'center'
                         theme_text_color: 'Custom'
-                        text_color: 'black'
+                        text_color: 'white'
                         font_name: 'assets/fonts/Lexend-Medium.ttf'
                 MDCard:
                     spacing: 10
                     radius: [40, 40, 40, 40]
                     md_bg_color: 'white'
-                    #on_release:
-                        #root.start_recording()
+                    on_release:
+                        root.view_dashboard()
                     MDLabel:
                         text: 'Dashboard'
                         halign: 'center'
@@ -45,8 +43,8 @@
                     spacing: 10
                     radius: [40, 40, 40, 40]
                     md_bg_color: 'white'
-                    #on_release:
-                    #    root.start_recording()
+                    on_release:
+                        root.view_profile()
                     MDLabel:
                         text: 'Profile'
                         halign: 'center'
@@ -76,6 +74,7 @@
                 adaptive_height: True
                 size_hint_x: .9
                 MDCard:
+                    id: recording_background
                     spacing: 10
                     radius: [40, 40, 40, 40]
                     md_bg_color: 'white'
@@ -136,3 +135,49 @@
             theme_text_color: 'Custom'
             on_release:
                 root.cancel()
+
+
+<ProfileDialog>:
+    orientation: "vertical"
+    size_hint: 0.8, None
+    pos_hint_y: 1
+    height: "200dp"
+    spacing: 10
+    MDBoxLayout:
+        size_hint: 1, .5
+        pos_hint: {'center_x': .5, 'center_y': .5}
+        MDCard:
+            MDLabel:
+                id: current_username
+                text : f"A pleasant day to you {root.current_username}!"
+                theme_text_color: 'Custom'
+                halign: 'center'
+                text_color: 'black'
+                font_size: '15sp'
+                font_name: 'assets/fonts/Lexend-Regular.ttf'
+
+    MDBoxLayout:
+        orientation: 'horizontal'
+        spacing: 10
+        pos_hint: {'center_x': .5, 'center_y': .5}
+        size_hint: 1, .2
+        MDFlatButton:
+            text: 'Logout'
+            size_hint_x: .9
+            theme_text_color: 'Custom'
+            text_color: 'white'
+            pos_hint: {'center_x': .5, 'center_y': .5}
+            md_bg_color: [142/255, 208/255, 196/255, 1]
+            font_name: 'assets/fonts/Lexend-Regular.ttf'
+            font_size: '15sp'
+            on_release:
+                root.logout()
+
+        MDIconButton:
+            pos_hint: {'center_x': .5, 'center_y': .5}
+            icon: 'close'
+            text_color: [142/255, 208/255, 196/255, 1]
+            theme_text_color: 'Custom'
+            on_release:
+                root.cancel()
+
