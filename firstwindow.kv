@@ -6,7 +6,7 @@
         id: passw
         password: True
         hint_text: "Password"
-        mode: "rectangle"
+        mode: "fill"
         text_color: 'black'
         line_color_normal: 'black'
         line_color_focus: 'black'     
@@ -59,15 +59,17 @@
                 size_hint: .9, .1
                 
             MDBoxLayout:
-                size_hint: .9, .4
+                size_hint: .9, .3
                 pos_hint: {'center_x': .5, 'center_y': .5}
                 orientation: 'vertical'
                 MDBoxLayout:
                     orientation: 'vertical'
                     pos_hint: {'center_x': .5, 'center_y': .5}
+                    size_hint_y: .15
+                    spacing: 20
                     MDTextField:
                         id: username
-                        mode: "rectangle"
+                        mode: "fill"
                         theme_text_color: 'Custom'
                         text_color: 'black'
                         line_color_normal: 'black'
@@ -83,7 +85,7 @@
                 MDBoxLayout:
                     orientation: 'horizontal'
                     spacing: 20
-                    size_hint_y: None
+                    size_hint_y: .15
                     pos_hint: {'center_x': .5, 'center_y': .5}
                     MDFlatButton:
                         text: "Sign in"
@@ -110,4 +112,4 @@
                             app.root.current = "second"
                             root.manager.transition.direction = "left"
             MDBoxLayout:
-                size_hint: .9, .1
+                size_hint: .9, .2

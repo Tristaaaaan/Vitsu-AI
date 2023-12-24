@@ -13,7 +13,7 @@
         hint_text_color_focus: 'black'
         text_color_focus: 'black'   
         font_name: 'assets/fonts/Lexend-Regular.ttf'
-        mode: "rectangle"
+        mode: "fill"
         font_size: "15dp"
     MDIconButton:
         icon: "eye-off"
@@ -36,7 +36,7 @@
         hint_text_color_focus: 'black'
         text_color_focus: 'black'   
         hint_text: "Confirm Password"
-        mode: "rectangle"
+        mode: "fill"
         font_name: 'assets/fonts/Lexend-Regular.ttf'
         font_size: "15dp"
     MDIconButton:
@@ -87,11 +87,13 @@
                 pos_hint: {'center_x': .5, 'center_y': .5}
                 orientation: 'vertical'
                 MDBoxLayout:
+                    size_hint_y: .35
                     orientation: 'vertical'
+                    spacing: 20
                     pos_hint: {'center_x': .5, 'center_y': .5}
                     MDTextField:
                         id: create_username
-                        mode: "rectangle"
+                        mode: "fill"
                         hint_text: "Username"
                         text_color: 'black'
                         line_color_normal: 'black'
@@ -105,28 +107,28 @@
                         id: create_password
                     ConfirmPasswordClickableTextField
                         id: confirm_password
-                    MDBoxLayout:
-                        orientation: 'horizontal'
-                        spacing: 20
-                        size_hint_y: None
+                MDBoxLayout:
+                    orientation: 'horizontal'
+                    spacing: 20
+                    size_hint_y: .15
+                    pos_hint: {'center_x': .5, 'center_y': .5}
+                    MDIconButton:
+                        icon: 'arrow-left'
                         pos_hint: {'center_x': .5, 'center_y': .5}
-
-                        MDIconButton:
-                            icon: 'arrow-left'
-                            pos_hint: {'center_x': .5, 'center_y': .5}
-                            on_release:
-                                root.clear()
-                                app.root.current = "first"
-                                root.manager.transition.direction = "right"
-                        MDFlatButton:
-                            text: "Sign up"
-                            pos_hint: {'center_x': .5, 'center_y': .5}
-                            font_name: 'assets/fonts/Lexend-Medium.ttf'
-                            font_size: "15sp"
-                            text_color: "white"
-                            theme_text_color: "Custom"
-                            size_hint_x: 0.50
-                            md_bg_color: [20/255, 20/255, 20/255, 1]
-                            on_release:
-                                root.signUp()
-                                
+                        on_release:
+                            root.clear()
+                            app.root.current = "first"
+                            root.manager.transition.direction = "right"
+                    MDFlatButton:
+                        text: "Sign up"
+                        pos_hint: {'center_x': .5, 'center_y': .5}
+                        font_name: 'assets/fonts/Lexend-Medium.ttf'
+                        font_size: "15sp"
+                        text_color: "white"
+                        theme_text_color: "Custom"
+                        size_hint_x: 0.50
+                        md_bg_color: [20/255, 20/255, 20/255, 1]
+                        on_release:
+                            root.signUp()
+            MDBoxLayout:
+                size_hint: .9, .2

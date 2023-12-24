@@ -19,7 +19,12 @@ from kivymd.uix.dialog import MDDialog
 from user_database import Database
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.snackbar import Snackbar
+from kivy.core.window import Window
+
 db = Database()
+
+Window.keyboard_anim_args = {'d': .2, 't': 'in_out_expo'}
+Window.softinput_mode = "below_target"
 
 if platform == "android":
     from speech_events import SpeechEvents
@@ -216,16 +221,16 @@ class ThirdWindow(Screen):
     @mainthread
     def recognizer_event_handler(self, key, value):
         if key == 'onReadyForSpeech':
-            self.output_box.text += '\n\nStatus: Listening.'
+            self.ids.output.text += '\n\nStatus: Listening.'
         elif key == 'onBeginningOfSpeech':
-            self.output_box.text += '\n\nStatus: Speaker Detected.'
+            self.ids.output.text += '\n\nStatus: Speaker Detected.'
         elif key == 'onEndOfSpeech':
-            self.output_box.text += '\n\nStatus: Not Listening.'
+            self.ids.output.text += '\n\nStatus: Not Listening.'
         elif key == 'onError':
-            self.output_box.text += '\n\nStatus: ' + value + ' Not Listening.'
+            self.ids.output.text += '\n\nStatus: ' + value + ' Not Listening.'
         elif key in ['onPartialResults', 'onResults']:
             self.unwrapped = str(value)
-            # self.output_box.text += fill(value, 40)
+            # self.ids.output.text += fill(value, 40)
         elif key in ['onBufferReceived', 'onEvent', 'onRmsChanged']:
             pass
 
@@ -239,7 +244,7 @@ class DialogContent(MDBoxLayout):
 
     def cancel(self):
 
-        self.saved_successfully()
+        #self.saved_successfully()
 
         MDApp.get_running_app().root.third.close_dialog()
 
@@ -255,7 +260,7 @@ class DialogContent(MDBoxLayout):
         ss = SharedStorage()
 
         document = Document()
-        document.add_paragraph(self.output_box.text)
+        document.add_paragraph(self.ids.final_output.text)
         document_file = f"Vitsu-AI-{timestamp}.docx"
         document.save(document_file)
 
@@ -265,8 +270,9 @@ class DialogContent(MDBoxLayout):
 
         ss.copy_to_shared(document_file, save_path)
 
-        MDApp.get_running_app(
-        ).root.third.ids.output.text += f"\n\nFile '{document_file}' saved successfully!"
+        self.cancel()
+
+        #MDApp.get_running_app().root.third.ids.output.text += f"\n\nFile '{document_file}' saved successfully!"
 
     def saved_successfully(self):
         snackbar = Snackbar(
