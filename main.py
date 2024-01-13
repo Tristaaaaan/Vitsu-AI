@@ -18,8 +18,8 @@ from kivymd.uix.relativelayout import MDRelativeLayout
 from kivymd.uix.dialog import MDDialog
 from user_database import Database
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.snackbar import Snackbar
 from kivy.core.window import Window
+
 import json
 
 db = Database()
@@ -186,7 +186,11 @@ class ThirdWindow(Screen):
 
     Builder.load_file('thirdwindow.kv')
     translated_text = StringProperty()
-
+    unwrapped = StringProperty()
+    
+    def remove_translated(self):
+        self.translated_text = ''
+        
     def back_to_main(self):
         self.manager.current = "first"
         self.manager.transition.direction = "right"
@@ -220,32 +224,37 @@ class ThirdWindow(Screen):
     def close_profile_dialog(self, *args):
         self.profile_view.dismiss()
 
+        
     def start_recording(self):
 
+        
         if self.ids.recording_status.text == 'Record':
+        
             self.ids.recording_status.text = 'Stop Recording'
             self.ids.output.text = ''
 
-            self.unwrapped = ''
 
             self.ids.output.text += "\nThe recording has started, you may speak now."
             self.ids.recording_background.md_bg_color = [
                 239/255, 153/255, 117/255, 1]
 
             self.ids.recording_status.text_color = 'white'
-
+           
             self.speech_events = SpeechEvents()
 
-            self.speech_events.create_recognizer(self.recognizer_event_handler)
-
+            self.speech_events.create_recognizer(self.recognizer_event_handler)   
+                     
             if self.speech_events:
 
                 self.unwrapped = ''
 
-                self.speech_events.start_listening()
-
+                self.speech_events.start_listening()   
+                
         else:
-
+            self.speech_events.stop_listening()
+            
+            self.speech_events.destroy_recognizer()
+            
             self.ids.output.text += "\n\nThe recording has stopped."
 
             self.ids.recording_status.text = 'Record'
@@ -254,16 +263,41 @@ class ThirdWindow(Screen):
 
             self.ids.recording_status.text_color = 'black'
 
-            self.speech_events.stop_listening()
 
             recognized_text = self.unwrapped
 
             translate_text = GoogleTranslator(
                 source='auto', target='en').translate(recognized_text)
-
-            self.ids.output.text += f"\n\nTranslated Text:\n\n{translate_text}"
-
-            self.translated_text = translate_text
+                
+            if translate_text == '':
+                self.ids.output.text += f"\n\nThe system cannot understand what you are saying. Kindly try again."
+            
+            else:
+                self.ids.output.text += f"\n\nTranslated Text:\n\n{translate_text}"
+                
+                self.translated_text = translate_text
+                           
+    @mainthread
+    def recognizer_event_handler(self, key, value):
+        if key == 'onReadyForSpeech':
+            self.ids.output.text += '\n\nStatus: Listening.'
+        elif key == 'onBeginningOfSpeech':
+            self.ids.output.text += '\n\nStatus: Speaker Detected.'
+        elif key == 'onEndOfSpeech':
+            self.ids.output.text += '\n\nStatus: Not Listening.'
+        elif key == 'onError':
+            self.ids.output.text += '\n\nStatus: Currently, the Speech Recognizer is encountering an error kindly wait a little bit.'
+            self.speech_events.stop_listening()
+            self.speech_events.destroy_recognizer()
+            self.ids.recording_status.text = 'Record'
+            self.ids.recording_background.md_bg_color = 'white'
+            self.ids.recording_status.text_color = 'black'
+            self.start_recording()
+            
+        elif key in ['onPartialResults', 'onResults']:
+            self.unwrapped = str(value)
+        elif key in ['onBufferReceived', 'onEvent', 'onRmsChanged']:
+            pass
 
     def view_dashboard(self):
 
@@ -305,21 +339,6 @@ class ThirdWindow(Screen):
     def close_error_ask_dialog(self, obj):
         self.error_ask.dismiss()
 
-    @mainthread
-    def recognizer_event_handler(self, key, value):
-        if key == 'onReadyForSpeech':
-            self.ids.output.text += '\n\nStatus: Listening.'
-        elif key == 'onBeginningOfSpeech':
-            self.ids.output.text += '\n\nStatus: Speaker Detected.'
-        elif key == 'onEndOfSpeech':
-            self.ids.output.text += '\n\nStatus: Not Listening.'
-        elif key == 'onError':
-            self.ids.output.text += '\n\nStatus: ' + value + ' Not Listening.'
-        elif key in ['onPartialResults', 'onResults']:
-            self.unwrapped = str(value)
-            # self.ids.output.text += fill(value, 40)
-        elif key in ['onBufferReceived', 'onEvent', 'onRmsChanged']:
-            pass
 
 
 class DialogContent(MDBoxLayout):
@@ -331,11 +350,7 @@ class DialogContent(MDBoxLayout):
 
     def cancel(self):
 
-        # self.saved_successfully()
-
         MDApp.get_running_app().root.third.close_dialog()
-
-        MDApp.get_running_app().root.third.ids.output.text = ''
 
     def save_to_word_document(self):
 
@@ -358,16 +373,20 @@ class DialogContent(MDBoxLayout):
         ss.copy_to_shared(document_file, save_path)
 
         self.cancel()
-
-        # MDApp.get_running_app().root.third.ids.output.text += f"\n\nFile '{document_file}' saved successfully!"
-
-    def saved_successfully(self):
-        snackbar = Snackbar(
-            text="The text has been saved."
-        )
-        snackbar.open()
-
-
+        
+        MDApp.get_running_app().root.third.ids.output.text += f"\n\nFile '{document_file}' saved successfully!"
+        
+    def refresh(self):
+    
+        MDApp.get_running_app().root.third.ids.output.text = ''
+        
+        self.ids.final_output.text = '' 
+        
+        # Clearing translated_text in ThirdWindow
+        setattr(MDApp.get_running_app().root.third, 'translated_text', '')
+        
+        self.cancel()
+        
 class ProfileDialog(MDBoxLayout):
 
     current_username = StringProperty()
@@ -377,11 +396,9 @@ class ProfileDialog(MDBoxLayout):
 
     def cancel(self):
 
-        # self.saved_successfully()
 
         MDApp.get_running_app().root.third.close_profile_dialog()
 
-        MDApp.get_running_app().root.third.ids.output.text = ''
 
     def logout(self):
 
@@ -403,13 +420,9 @@ class ProfileDialog(MDBoxLayout):
         with open(json_file_path, 'w') as file:
             json.dump(data, file, indent=2)
 
+        MDApp.get_running_app().root.third.ids.output.text = ''
+        
         self.cancel()
-
-    def saved_successfully(self):
-        snackbar = Snackbar(
-            text="The text has been saved."
-        )
-        snackbar.open()
 
 
 class LoadingScreen(Screen):

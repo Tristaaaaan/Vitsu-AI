@@ -73,10 +73,10 @@
                 pos_hint: {'center_x': .5, 'center_y': .5}
                 adaptive_height: True
                 size_hint_x: .9
+                spacing: 10
                 MDCard:
                     id: recording_background
-                    spacing: 10
-                    radius: [40, 40, 40, 40]
+                    radius: [30, 30, 30, 30]
                     md_bg_color: 'white'
                     on_release:
                         root.start_recording()
@@ -87,6 +87,8 @@
                         theme_text_color: 'Custom'
                         text_color: 'black'
                         font_name: 'assets/fonts/Lexend-Medium.ttf'
+
+                        
 
 <DialogContent>:
     orientation: "vertical"
@@ -118,7 +120,7 @@
         size_hint: 1, .2
         MDFlatButton:
             text: 'Download'
-            size_hint_x: .9
+            size_hint_x: .8
             theme_text_color: 'Custom'
             text_color: 'white'
             pos_hint: {'center_x': .5, 'center_y': .5}
@@ -136,7 +138,14 @@
             on_release:
                 root.cancel()
 
-
+        MDIconButton:
+            pos_hint: {'center_x': .5, 'center_y': .5}
+            icon: 'refresh'
+            text_color: [142/255, 208/255, 196/255, 1]
+            theme_text_color: 'Custom'
+            on_release:
+                root.refresh()
+                
 <ProfileDialog>:
     orientation: "vertical"
     size_hint: 0.8, None
